@@ -1,4 +1,4 @@
-const CACHE = "jlpt-single-kanji-v2.0.0-92cf870fd4";
+const CACHE = "jlpt-single-kanji-v2.0.1-6b7f3b2d";
 const ASSETS = [
   "./",
   "./index.html",

@@ -16,6 +16,14 @@
     multiTyping: "on"
   });
 
+  const JLPT_RANGES = [
+    { level: "N5", min: 1, max: 5 },
+    { level: "N4", min: 6, max: 16 },
+    { level: "N3", min: 17, max: 41 },
+    { level: "N2", min: 42, max: 65 },
+    { level: "N1", min: 66, max: 143 }
+  ];
+
   function loadJSON(key, fallback) {
     try {
       const raw = localStorage.getItem(key);
@@ -34,6 +42,27 @@
     if (stored && stored.items) return stored;
     const res = await fetch("data/kanji.json");
     return await res.json();
+  }
+
+  function parseLessonNumber(item) {
+    const raw = item.lesson ?? item.section ?? item.lesson_id;
+    if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+    const match = String(raw || "").match(/(\d+)/);
+    if (!match) return null;
+    const num = parseInt(match[1], 10);
+    return Number.isNaN(num) ? null : num;
+  }
+
+  function getJlptLevel(lessonNumber) {
+    if (!lessonNumber) return "Unknown";
+    const found = JLPT_RANGES.find(range => lessonNumber >= range.min && lessonNumber <= range.max);
+    return found ? found.level : "Unknown";
+  }
+
+  function normalizeJlptLevel(item) {
+    if (item.jlpt_level) return item;
+    const lessonNumber = parseLessonNumber(item);
+    return { ...item, jlpt_level: getJlptLevel(lessonNumber) };
   }
 
   let starred = new Set(loadJSON(STORAGE.stars, []));
@@ -108,9 +137,11 @@
 
   function getPool() {
     const section = $("#selSection").value;
+    const jlptLevel = $("#selJlpt").value;
     const starOnly = $("#chkStarOnly").checked;
     let pool = items;
     if (section !== "all") pool = pool.filter(x => String(x.section) === section);
+    if (jlptLevel !== "all") pool = pool.filter(x => x.jlpt_level === jlptLevel);
     if (starOnly) pool = pool.filter(x => isStarred(x.id));
     return pool.slice();
   }
@@ -377,10 +408,12 @@
   function renderKanjiList() {
     const q = ($("#viewSearch").value || "").trim().toLowerCase();
     const starOnly = $("#viewStarOnly").checked;
+    const jlptLevel = $("#viewJlpt").value;
     const host = $("#kanjiList");
     host.innerHTML = "";
     let list = items.slice();
     if (starOnly) list = list.filter(x => isStarred(x.id));
+    if (jlptLevel !== "all") list = list.filter(x => x.jlpt_level === jlptLevel);
     if (q) {
       list = list.filter(x =>
         x.kanji.includes(q) ||
@@ -398,7 +431,7 @@
           <div class="bigKanji">${escapeHtml(x.kanji)}</div>
           <div>
             <div class="meaning">${escapeHtml(x.meaning)}</div>
-            <div class="tags">Lesson ${x.section} • ${escapeHtml(x.category || "")}</div>
+            <div class="tags">Lesson ${escapeHtml(x.section)} • JLPT ${escapeHtml(x.jlpt_level || "Unknown")}</div>
             ${showMultiToggle ? `
             <label class="mini multiToggle">
               <input type="checkbox" class="multiToggleInput" data-id="${escapeHtml(x.id)}" ${multiEnabled ? "checked" : ""} />
@@ -425,6 +458,7 @@
   }
   $("#viewSearch").addEventListener("input", () => renderKanjiList());
   $("#viewStarOnly").addEventListener("change", () => renderKanjiList());
+  $("#viewJlpt").addEventListener("change", () => renderKanjiList());
 
   $("#btnExportStars").addEventListener("click", () => {
     const payload = { version:1, stars: Array.from(starred) };
@@ -504,6 +538,38 @@
       row.innerHTML = `<div class="left"><div class="meaning">Lesson ${escapeHtml(sec)}</div><div class="tags">Accuracy: ${pct(s.c,t)}% • Attempts: ${t}</div></div>`;
       secHost.appendChild(row);
     });
+
+    const jlptHost = $("#jlptStats"); jlptHost.innerHTML = "";
+    const jlptLevels = ["N5", "N4", "N3", "N2", "N1", "Unknown"];
+    const jlptRows = jlptLevels.map(level => {
+      const levelItems = items.filter(item => (item.jlpt_level || "Unknown") === level);
+      if (!levelItems.length) return null;
+      const totals = levelItems.reduce((acc, item) => {
+        const s = stats.byId[item.id];
+        if (s) { acc.c += s.c; acc.w += s.w; }
+        return acc;
+      }, { c: 0, w: 0 });
+      const attempts = totals.c + totals.w;
+      return {
+        level,
+        total: levelItems.length,
+        starred: levelItems.filter(item => isStarred(item.id)).length,
+        accuracy: pct(totals.c, attempts),
+        attempts
+      };
+    }).filter(Boolean);
+    if (!jlptRows.length) jlptHost.innerHTML = `<div class="hint"><p class="small muted">No JLPT stats yet.</p></div>`;
+    else jlptRows.forEach(entry => {
+      const row = document.createElement("div");
+      row.className = "itemRow";
+      row.innerHTML = `
+        <div class="left">
+          <div class="meaning">JLPT ${escapeHtml(entry.level)}</div>
+          <div class="tags">Total: ${entry.total} • Starred: ${entry.starred} • Accuracy: ${entry.accuracy}% • Attempts: ${entry.attempts}</div>
+        </div>
+      `;
+      jlptHost.appendChild(row);
+    });
   }
 
   $("#btnResetStats").addEventListener("click", () => {
@@ -566,7 +632,7 @@
 
   async function init() {
     DATA = await loadData();
-    items = DATA.items || [];
+    items = (DATA.items || []).map(normalizeJlptLevel);
     renderSections();
     $("#chkAuto").dispatchEvent(new Event("change"));
     setTab("study");
