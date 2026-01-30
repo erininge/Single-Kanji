@@ -178,6 +178,9 @@ kbd{
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap:8px;
 }
+.lessonToggleList.collapsed{
+  display:none;
+}
 .lessonToggle{
   display:flex;
   align-items:center;
