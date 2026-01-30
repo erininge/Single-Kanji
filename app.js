@@ -135,12 +135,22 @@
   function pickMode(selMode) { return selMode !== "mixed" ? selMode : (Math.random()<0.5 ? "k2m":"m2k"); }
   function pickAnswerType(selAnswer) { return selAnswer !== "mixed" ? selAnswer : (Math.random()<0.5 ? "mc":"typing"); }
 
+  function getSelectedLessons(scope) {
+    return $$(`.lessonToggleInput[data-scope="${scope}"]`)
+      .filter(input => input.checked)
+      .map(input => input.value);
+  }
+
   function getPool() {
-    const section = $("#selSection").value;
+    const selectedLessons = getSelectedLessons("study");
     const jlptLevel = $("#selJlpt").value;
     const starOnly = $("#chkStarOnly").checked;
     let pool = items;
-    if (section !== "all") pool = pool.filter(x => String(x.section) === section);
+    if (selectedLessons.length) {
+      pool = pool.filter(x => selectedLessons.includes(String(x.section)));
+    } else {
+      pool = [];
+    }
     if (jlptLevel !== "all") pool = pool.filter(x => x.jlpt_level === jlptLevel);
     if (starOnly) pool = pool.filter(x => isStarred(x.id));
     return pool.slice();
@@ -409,10 +419,16 @@
     const q = ($("#viewSearch").value || "").trim().toLowerCase();
     const starOnly = $("#viewStarOnly").checked;
     const jlptLevel = $("#viewJlpt").value;
+    const selectedLessons = getSelectedLessons("view");
     const host = $("#kanjiList");
     host.innerHTML = "";
     let list = items.slice();
     if (starOnly) list = list.filter(x => isStarred(x.id));
+    if (selectedLessons.length) {
+      list = list.filter(x => selectedLessons.includes(String(x.section)));
+    } else {
+      list = [];
+    }
     if (jlptLevel !== "all") list = list.filter(x => x.jlpt_level === jlptLevel);
     if (q) {
       list = list.filter(x =>
@@ -617,23 +633,41 @@
     location.reload();
   });
 
-  function renderSections() {
-    const sel = $("#selSection"); sel.innerHTML = "";
+  function setLessonToggleState(scope, checked) {
+    $$(`.lessonToggleInput[data-scope="${scope}"]`).forEach(input => {
+      input.checked = checked;
+    });
+    if (scope === "view") renderKanjiList();
+  }
+
+  function renderLessonToggles(scope, hostId) {
+    const host = $("#"+hostId);
+    host.innerHTML = "";
     const sections = Array.from(new Set(items.map(x => String(x.section)))).sort((a,b)=>parseInt(a,10)-parseInt(b,10));
-    const optAll = document.createElement("option");
-    optAll.value = "all"; optAll.textContent = "All";
-    sel.appendChild(optAll);
     sections.forEach(s => {
-      const o = document.createElement("option");
-      o.value = s; o.textContent = `Lesson ${s}`;
-      sel.appendChild(o);
+      const label = document.createElement("label");
+      label.className = "lessonToggle";
+      label.innerHTML = `
+        <input type="checkbox" class="lessonToggleInput" data-scope="${scope}" value="${escapeHtml(s)}" checked />
+        <span>Lesson ${escapeHtml(s)}</span>
+      `;
+      const input = label.querySelector("input");
+      if (input && scope === "view") {
+        input.addEventListener("change", () => renderKanjiList());
+      }
+      host.appendChild(label);
     });
   }
 
   async function init() {
     DATA = await loadData();
     items = (DATA.items || []).map(normalizeJlptLevel);
-    renderSections();
+    renderLessonToggles("study", "studyLessons");
+    renderLessonToggles("view", "viewLessons");
+    $("#studyLessonsAll").addEventListener("click", () => setLessonToggleState("study", true));
+    $("#studyLessonsNone").addEventListener("click", () => setLessonToggleState("study", false));
+    $("#viewLessonsAll").addEventListener("click", () => setLessonToggleState("view", true));
+    $("#viewLessonsNone").addEventListener("click", () => setLessonToggleState("view", false));
     $("#chkAuto").dispatchEvent(new Event("change"));
     setTab("study");
     if ("serviceWorker" in navigator) {
