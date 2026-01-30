@@ -19,8 +19,8 @@
       </div>
     </div>
     <div class="meta">
-      <span class="pill">v2.0.0</span>
-      <span class="pill">build 92cf870fd4</span>
+      <span class="pill">v2.0.1</span>
+      <span class="pill">build 6b7f3b2d</span>
     </div>
   </header>
 
@@ -45,6 +45,18 @@
           <label class="field">
             <span>Lesson</span>
             <select id="selSection"></select>
+          </label>
+
+          <label class="field">
+            <span>JLPT level</span>
+            <select id="selJlpt">
+              <option value="all">All</option>
+              <option value="N5">N5</option>
+              <option value="N4">N4</option>
+              <option value="N3">N3</option>
+              <option value="N2">N2</option>
+              <option value="N1">N1</option>
+            </select>
           </label>
 
           <label class="field">
@@ -143,8 +155,22 @@
         </div>
       </div>
 
-      <div class="row gap">
-        <input id="viewSearch" class="typingInput" placeholder="Search kanji or meaning…" />
+      <div class="grid2">
+        <label class="field">
+          <span>Search</span>
+          <input id="viewSearch" class="typingInput" placeholder="Search kanji or meaning…" />
+        </label>
+        <label class="field">
+          <span>JLPT level</span>
+          <select id="viewJlpt">
+            <option value="all">All</option>
+            <option value="N5">N5</option>
+            <option value="N4">N4</option>
+            <option value="N3">N3</option>
+            <option value="N2">N2</option>
+            <option value="N1">N1</option>
+          </select>
+        </label>
       </div>
 
       <div class="list" id="kanjiList"></div>
@@ -169,6 +195,11 @@
       <div class="cardInner">
         <h3>By lesson</h3>
         <div class="list" id="sectionStats"></div>
+      </div>
+
+      <div class="cardInner">
+        <h3>By JLPT level</h3>
+        <div class="list" id="jlptStats"></div>
       </div>
     </section>
 
