@@ -640,6 +640,21 @@
     if (scope === "view") renderKanjiList();
   }
 
+  function setLessonDropdown(scope, open) {
+    const list = $("#"+scope+"Lessons");
+    const toggle = $("#"+scope+"LessonsToggle");
+    if (!list || !toggle) return;
+    list.classList.toggle("collapsed", !open);
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    toggle.textContent = open ? "Hide" : "Show";
+  }
+
+  function toggleLessonDropdown(scope) {
+    const list = $("#"+scope+"Lessons");
+    if (!list) return;
+    setLessonDropdown(scope, list.classList.contains("collapsed"));
+  }
+
   function renderLessonToggles(scope, hostId) {
     const host = $("#"+hostId);
     host.innerHTML = "";
@@ -668,6 +683,10 @@
     $("#studyLessonsNone").addEventListener("click", () => setLessonToggleState("study", false));
     $("#viewLessonsAll").addEventListener("click", () => setLessonToggleState("view", true));
     $("#viewLessonsNone").addEventListener("click", () => setLessonToggleState("view", false));
+    $("#studyLessonsToggle").addEventListener("click", () => toggleLessonDropdown("study"));
+    $("#viewLessonsToggle").addEventListener("click", () => toggleLessonDropdown("view"));
+    setLessonDropdown("study", false);
+    setLessonDropdown("view", false);
     $("#chkAuto").dispatchEvent(new Event("change"));
     setTab("study");
     if ("serviceWorker" in navigator) {
