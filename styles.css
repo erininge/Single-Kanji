@@ -107,6 +107,11 @@ h3{margin:0 0 10px 0}
   font-weight:800;
   cursor:pointer;
 }
+.btn.tiny{
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+}
 .btn.primary{
   border-color: rgba(125,211,252,.35);
   background: rgba(125,211,252,.12);
@@ -163,6 +168,31 @@ kbd{
 }
 .inline{display:flex; gap:10px; align-items:center}
 .mini{font-size:12px; color:var(--muted); font-weight:800}
+.lessonActions{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.lessonToggleList{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap:8px;
+}
+.lessonToggle{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 10px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.18);
+  font-size:12px;
+  font-weight:800;
+  color:var(--text);
+}
+.lessonToggle input{
+  accent-color: var(--accent);
+}
 .answerArea{margin-top:12px}
 .typingInputs{
   display:flex;

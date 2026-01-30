@@ -19,8 +19,8 @@
       </div>
     </div>
     <div class="meta">
-      <span class="pill">v2.0.1</span>
-      <span class="pill">build 6b7f3b2d</span>
+      <span class="pill">v2.0.2</span>
+      <span class="pill">build 2a1c8d7e</span>
     </div>
   </header>
 
@@ -42,10 +42,14 @@
         </div>
 
         <div class="grid2">
-          <label class="field">
-            <span>Lesson</span>
-            <select id="selSection"></select>
-          </label>
+          <div class="field">
+            <span>Lessons</span>
+            <div class="lessonActions">
+              <button class="btn tiny" id="studyLessonsAll" type="button">All</button>
+              <button class="btn tiny" id="studyLessonsNone" type="button">None</button>
+            </div>
+            <div class="lessonToggleList" id="studyLessons"></div>
+          </div>
 
           <label class="field">
             <span>JLPT level</span>
@@ -155,7 +159,7 @@
         </div>
       </div>
 
-      <div class="grid2">
+      <div class="grid3">
         <label class="field">
           <span>Search</span>
           <input id="viewSearch" class="typingInput" placeholder="Search kanji or meaning…" />
@@ -171,6 +175,14 @@
             <option value="N1">N1</option>
           </select>
         </label>
+        <div class="field">
+          <span>Lessons</span>
+          <div class="lessonActions">
+            <button class="btn tiny" id="viewLessonsAll" type="button">All</button>
+            <button class="btn tiny" id="viewLessonsNone" type="button">None</button>
+          </div>
+          <div class="lessonToggleList" id="viewLessons"></div>
+        </div>
       </div>
 
       <div class="list" id="kanjiList"></div>
